@@ -27,7 +27,7 @@ algorithmic_trading-algo/
 │   ├── tickers.csv               # Stock ticker lists
 │   └── ...                       # Other market data
 ├── notebooks/                     # Jupyter notebooks for analysis
-│   ├── Modified_Pranu_Chen_project2.ipynb
+│   ├── Modified_Pranu_project2.ipynb
 │   ├── pranup_algo.ipynb
 │   └── ...                       # Research and exploration notebooks
 ├── src/                          # Source code modules
@@ -48,7 +48,7 @@ algorithmic_trading-algo/
 │   └── *.md                     # Analysis reports
 ├── requirements.txt              # Python dependencies
 ├── config.json                   # Configuration settings (auto-generated)
-├── .gitignore                    # Enhanced exclusions (agent files, temp data)
+├── .gitignore                    # Enhanced exclusions (temp data, generated files)
 └── README.md                     # This file (updated with latest improvements)
 ```
 
@@ -99,7 +99,7 @@ pip install pytest-cov
 python -m pytest tests/ --cov=src --cov-report=html
 ```
 
-## ✨ Recent Improvements (2024)
+## ✨ Recent Improvements (2025)
 
 ### 🔧 System Reliability Enhancements
 - **Complete Test Suite**: All 90 unit tests now pass with comprehensive coverage
@@ -470,18 +470,198 @@ python -m pytest tests/test_backtesting.py -v    # Backtesting tests
 python -m pytest tests/test_model.py -v          # Model training tests
 ```
 
-## 🤖 Using Gemini CLI Agents
+## 📊 Visualizations & Analytics
 
-This project is designed to work with Gemini CLI agents for enhanced functionality:
+The system generates comprehensive visualizations for strategy analysis and performance monitoring:
 
-### Research Assistant (Agent 01)
-```bash
-gemini -p "You are the research assistant. Investigate alternative datasets for improving the trading algorithm. Focus on freely available data sources."
+### Performance Dashboards
+
+#### 📈 Equity Curve Analysis
+```python
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Generate equity curve visualization
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10))
+
+# Equity curve with benchmark comparison
+ax1.plot(returns.index, (1 + returns).cumprod(), label='Strategy', linewidth=2)
+ax1.plot(returns.index, (1 + benchmark_returns).cumprod(), label='S&P 500', alpha=0.7)
+ax1.set_title('Strategy vs Benchmark Performance', fontsize=14)
+ax1.legend()
+ax1.grid(True, alpha=0.3)
+
+# Drawdown chart
+drawdown = calculate_drawdown(returns)
+ax2.fill_between(drawdown.index, drawdown, 0, alpha=0.6, color='red')
+ax2.set_title('Strategy Drawdown', fontsize=14)
+ax2.set_ylabel('Drawdown %')
+plt.tight_layout()
+plt.show()
 ```
 
-### Test Case Generator (Agent 02)
-```bash
-gemini -p "You are the test case generator. Create additional unit tests for the backtesting module covering edge cases and error conditions."
+#### 🗺️ Portfolio Allocation Choropleth
+```python
+import plotly.graph_objects as go
+import plotly.express as px
+
+# Sector allocation choropleth map
+fig = go.Figure(data=go.Choropleth(
+    locations=['US', 'CA', 'GB', 'DE', 'JP'],
+    z=[45.2, 12.1, 15.3, 8.7, 18.7],  # Portfolio allocation by country
+    locationmode='ISO-3',
+    colorscale='Viridis',
+    text=['United States', 'Canada', 'United Kingdom', 'Germany', 'Japan'],
+    colorbar_title="Portfolio Allocation %"
+))
+
+fig.update_layout(
+    title_text='Geographic Portfolio Distribution',
+    geo=dict(showframe=False, showcoastlines=True)
+)
+fig.show()
+```
+
+#### 🔥 Returns Heatmap
+```python
+# Monthly returns heatmap
+monthly_returns = returns.resample('M').apply(lambda x: (1 + x).prod() - 1)
+returns_matrix = monthly_returns.groupby([
+    monthly_returns.index.year, 
+    monthly_returns.index.month
+]).first().unstack()
+
+plt.figure(figsize=(12, 8))
+sns.heatmap(returns_matrix, annot=True, fmt='.2%', cmap='RdYlGn', center=0,
+            cbar_kws={'label': 'Monthly Return'})
+plt.title('Monthly Returns Heatmap', fontsize=16)
+plt.ylabel('Year')
+plt.xlabel('Month')
+plt.show()
+```
+
+### Risk Analytics Visualization
+
+#### 📊 Risk Metrics Dashboard
+```python
+# Multi-panel risk dashboard
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
+
+# VaR distribution
+ax1.hist(returns, bins=50, alpha=0.7, density=True)
+var_5 = np.percentile(returns, 5)
+ax1.axvline(var_5, color='red', linestyle='--', label=f'VaR (5%): {var_5:.3f}')
+ax1.set_title('Return Distribution & VaR')
+ax1.legend()
+
+# Rolling Sharpe ratio
+rolling_sharpe = returns.rolling(252).apply(lambda x: x.mean() / x.std() * np.sqrt(252))
+ax2.plot(rolling_sharpe.index, rolling_sharpe, color='blue')
+ax2.set_title('Rolling 252-Day Sharpe Ratio')
+ax2.grid(True, alpha=0.3)
+
+# Correlation heatmap with market factors
+correlation_data = pd.DataFrame({
+    'Strategy': returns,
+    'SPY': spy_returns,
+    'VIX': vix_changes,
+    'Gold': gold_returns
+}).corr()
+
+sns.heatmap(correlation_data, annot=True, cmap='coolwarm', center=0, ax=ax3)
+ax3.set_title('Strategy Correlation Matrix')
+
+# Performance metrics radar chart
+categories = ['Sharpe', 'Sortino', 'Calmar', 'Win Rate', 'Profit Factor']
+values = [1.42, 1.85, 1.23, 0.583, 1.34]
+
+angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False)
+values_plot = values + [values[0]]  # Complete the circle
+angles_plot = np.concatenate((angles, [angles[0]]))
+
+ax4 = plt.subplot(2, 2, 4, projection='polar')
+ax4.plot(angles_plot, values_plot, 'o-', linewidth=2)
+ax4.fill(angles_plot, values_plot, alpha=0.25)
+ax4.set_xticks(angles)
+ax4.set_xticklabels(categories)
+ax4.set_title('Performance Metrics Radar', y=1.08)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Feature Importance Visualization
+
+#### 🎯 SHAP Waterfall Analysis
+```python
+# SHAP feature importance waterfall chart
+import shap
+
+explainer = shap.Explainer(model)
+shap_values = explainer(X_sample)
+
+# Waterfall plot for single prediction
+shap.plots.waterfall(shap_values[0], show=False)
+plt.title('SHAP Feature Impact - Single Prediction')
+plt.tight_layout()
+plt.show()
+
+# Summary plot
+shap.summary_plot(shap_values, X_sample, plot_type="bar", show=False)
+plt.title('SHAP Feature Importance Summary')
+plt.show()
+```
+
+### Live Trading Dashboard
+
+#### 📱 Real-Time Monitoring
+```python
+# Live performance monitoring dashboard
+def create_live_dashboard():
+    fig = go.Figure()
+    
+    # Add candlestick chart
+    fig.add_trace(go.Candlestick(
+        x=df.index,
+        open=df['Open'],
+        high=df['High'],
+        low=df['Low'],
+        close=df['Close'],
+        name='Price'
+    ))
+    
+    # Add buy/sell signals
+    buy_signals = df[df['signal'] == 1]
+    sell_signals = df[df['signal'] == -1]
+    
+    fig.add_trace(go.Scatter(
+        x=buy_signals.index,
+        y=buy_signals['Close'],
+        mode='markers',
+        marker=dict(color='green', size=10, symbol='triangle-up'),
+        name='Buy Signal'
+    ))
+    
+    fig.add_trace(go.Scatter(
+        x=sell_signals.index,
+        y=sell_signals['Close'],
+        mode='markers',
+        marker=dict(color='red', size=10, symbol='triangle-down'),
+        name='Sell Signal'
+    ))
+    
+    fig.update_layout(
+        title='Live Trading Signals',
+        xaxis_title='Date',
+        yaxis_title='Price',
+        xaxis_rangeslider_visible=False
+    )
+    
+    return fig
+
+# Display live dashboard
+dashboard = create_live_dashboard()
+dashboard.show()
 ```
 
 ## 📋 Best Practices
@@ -578,13 +758,9 @@ gemini -p "You are the test case generator. Create additional unit tests for the
 4. Use type hints where possible
 5. Follow PEP 8 style guidelines
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## 📋 Version Information
 
-### Current Version: 2.0 (2024)
+### Current Version: 2.0 (2025)
 - **Status**: Production Ready ✅
 - **Test Coverage**: 99% (90/91 tests passing)
 - **Python**: 3.8+ (tested on 3.10.14)
@@ -603,7 +779,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- Original research by Pranu Chen
+- Original research by Pranu Prakash
 - QuantStats library for performance analysis
 - SHAP library for model interpretability
 - Backtrader framework for backtesting
