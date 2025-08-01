@@ -179,3 +179,24 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# Project-specific files to ignore
+# Gemini agent instruction files
+gemini_agent_*.md
+*_agent_*.md
+
+# Project planning and documentation files (temporary)
+plan.md
+TRANSFORMATION_SUMMARY.md
+
+# Demo files
+demo.py
+
+# Data directories (may contain large datasets)
+data/
+logs/
+reports/
+
+# Jupyter notebook outputs
+notebooks/.ipynb_checkpoints
+*.ipynb
